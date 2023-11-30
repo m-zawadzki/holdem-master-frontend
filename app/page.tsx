@@ -5,12 +5,12 @@ import socketIOClient from 'socket.io-client';
 
 const socket = socketIOClient(process.env.NEXT_PUBLIC_SERVER_URL as string);
 
-
 const Page = () => {
-
   const [roomId, setRoomId] = useState('');
   const [playersCount, setPlayersCount] = useState(0);
   const [username, setUsername] = useState('');
+
+  const [gameStarted, setGameStarted] = useState(false);
 
   const joinRoom = (room: string) => {
     setRoomId(room);
@@ -22,15 +22,34 @@ const Page = () => {
     socket.emit('leaveRoom', roomId);
   };
 
-  const simulateGameAction = () => {
-    socket.emit('pokerAction', { roomId, action: 'dealCards' });
-  };
-
   useEffect(() => {
     socket.on('playersUpdated', data => {
       setPlayersCount(data.players);
     });
+
+    socket.on('gameStarted', () => {
+      setGameStarted(true);
+    });
+
+    socket.on('dealingResult', (data) => {
+      console.log(data, 'dealingResult');
+    });
   }, []);
+
+  if (gameStarted) {
+    return (
+      <div>
+        Game stared
+        <div>{socket.id}</div>
+        <button
+          className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
+          onClick={leaveRoom}
+        >
+          Leave Room
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -47,13 +66,6 @@ const Page = () => {
             onClick={leaveRoom}
           >
             Leave Room
-          </button>
-
-          <button
-            className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
-            onClick={simulateGameAction}
-          >
-            Simulate Game Action
           </button>
         </>
       ) : (
