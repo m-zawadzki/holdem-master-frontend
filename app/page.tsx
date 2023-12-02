@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import socketIOClient from 'socket.io-client';
+import Image from 'next/image';
 
 const socket = socketIOClient(process.env.NEXT_PUBLIC_SERVER_URL as string);
 
@@ -11,6 +12,8 @@ const Page = () => {
   const [username, setUsername] = useState('');
 
   const [gameStarted, setGameStarted] = useState(false);
+
+  const [cards, setCards] = useState([])
 
   const joinRoom = (room: string) => {
     setRoomId(room);
@@ -32,7 +35,7 @@ const Page = () => {
     });
 
     socket.on('dealingResult', (data) => {
-      console.log(data, 'dealingResult');
+      setCards(data)
     });
   }, []);
 
@@ -41,6 +44,11 @@ const Page = () => {
       <div>
         Game stared
         <div>{socket.id}</div>
+
+        <div className="flex">
+          {cards.map(card => <Image width={100} height={0} key={card.card} src={`/images/${card.card}.svg`} alt="card" /> )}
+        </div>
+
         <button
           className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
           onClick={leaveRoom}
@@ -56,7 +64,7 @@ const Page = () => {
       <h1>Holdem Master</h1>
 
       {roomId ? (
-        <>
+        <div>
           <p>Room ID: {roomId}</p>
 
           <p>Players in room: {playersCount}</p>
@@ -67,7 +75,7 @@ const Page = () => {
           >
             Leave Room
           </button>
-        </>
+        </div>
       ) : (
         <>
           <div className="mb-4">
