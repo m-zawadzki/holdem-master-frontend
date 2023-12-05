@@ -14,7 +14,8 @@ const Page = () => {
 
   const [gameStarted, setGameStarted] = useState(false);
 
-  const [cards, setCards] = useState<Array<{ card: string }>>([]);
+  const [playerCards, setPlayerCards] = useState<Array<{ card: string }>>([]);
+  const [cards, setCards] = useState([]);
 
   const joinRoom = (room: string) => {
     setRoomId(room);
@@ -36,19 +37,32 @@ const Page = () => {
     });
 
     socket.on('dealingResult', data => {
-      setCards(data);
+      setPlayerCards(data);
+    });
+
+    socket.on('flop', flop => {
+      setCards(flop);
+    });
+
+    socket.on('turn', turn => {
+      setCards(turn);
+    });
+
+    socket.on('river', river => {
+      setCards(river);
     });
   }, []);
 
   if (gameStarted) {
     return (
-      <div>
-        Game stared
-        <div>{socket.id}</div>
-        <div className="flex">
-          {cards.map(card => (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <PokerTable numPlayers={playersCount} cards={cards} />
+
+        <div className="flex gap-4 mt-10">
+          {playerCards.map(card => (
             <Image
-              width={200}
+              className="w-14 sm:w-20 md:w-24 lg:w-28"
+              width={100}
               height={0}
               key={card.card}
               src={`/images/${card.card}.svg`}
@@ -56,12 +70,6 @@ const Page = () => {
             />
           ))}
         </div>
-        <button
-          className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
-          onClick={leaveRoom}
-        >
-          Leave Room
-        </button>
       </div>
     );
   }
@@ -76,7 +84,7 @@ const Page = () => {
 
           <p>Players in room: {playersCount}</p>
 
-         <PokerTable numPlayers={8} />
+          <PokerTable numPlayers={playersCount} cards={cards} />
 
           <button
             className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
